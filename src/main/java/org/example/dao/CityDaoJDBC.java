@@ -43,8 +43,8 @@ public class CityDaoJDBC implements CityDao {
         try (
                 Connection connection = MySQLConnection.mySQLGetConnection();
                 PreparedStatement preparedStatement = connection.prepareStatement(queryFindByCode)) {
-            preparedStatement.setString(1, code);
-            ResultSet resultSet = preparedStatement.executeQuery();
+            preparedStatement.setString(1, code.toUpperCase());//used toUppercase for write code capital letter.
+            ResultSet resultSet = preparedStatement.executeQuery();//findID, findName,, used executeQuery=result but delete, update used execute=boolean.
 
             while (resultSet.next()) {
                 cityList.add(new City(resultSet.getInt("Id"),
@@ -67,8 +67,9 @@ public class CityDaoJDBC implements CityDao {
 
         try (
                 Connection connection = MySQLConnection.mySQLGetConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(findByNameQuery);
-                ResultSet resultSet = preparedStatement.executeQuery()) {
+                PreparedStatement preparedStatement = connection.prepareStatement(findByNameQuery)) {
+                preparedStatement.setString(1, name);
+                ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
                 cityList.add(new City(resultSet.getInt("Id"),
@@ -90,8 +91,8 @@ public class CityDaoJDBC implements CityDao {
 
         try (
                 Connection connection = MySQLConnection.mySQLGetConnection();
-                Statement statement = connection.createStatement();
-                ResultSet resultSet = statement.executeQuery(findAllQuery)) {
+                Statement statement = connection.createStatement()) {
+                ResultSet resultSet = statement.executeQuery(findAllQuery);
 
             while (resultSet.next()) {
                 cityList.add(new City(resultSet.getInt("Id"),
@@ -111,17 +112,22 @@ public class CityDaoJDBC implements CityDao {
         if (city.getId() != 0) {
             throw new IllegalArgumentException(" Exception to city is invalid ");
         }
+        ResultSet keySet = null;
         String addQuery = " Insert into city (Name , Country_code, District, Population) values (?, ?, ?, ?);";
 
         try (
                 Connection connection = MySQLConnection.mySQLGetConnection();
-                PreparedStatement preparedStatement = connection.prepareStatement(addQuery)) {
+                PreparedStatement preparedStatement = connection.prepareStatement(addQuery, Statement.RETURN_GENERATED_KEYS )) {
             preparedStatement.setString(1, city.getName());
             preparedStatement.setString(2, city.getCountryCode());
             preparedStatement.setString(3, city.getDistrict());
             preparedStatement.setInt(4, city.getPopulation());
             preparedStatement.execute();
+            keySet = preparedStatement.getGeneratedKeys();
 
+            while (keySet.next()) {
+                city.setId(keySet.getInt(1));//used keySet matching for id in table city.. with table country...
+            }
         } catch (SQLException | MySQLConnectionException e) {
             e.printStackTrace();
         }
@@ -144,7 +150,7 @@ public class CityDaoJDBC implements CityDao {
             preparedStatement.setString(4, city.getDistrict());
             preparedStatement.setInt(5, city.getPopulation());
 
-            preparedStatement.execute();
+            preparedStatement.execute();//used execute in update
         } catch (SQLException | MySQLConnectionException e) {
             e.printStackTrace();
         }

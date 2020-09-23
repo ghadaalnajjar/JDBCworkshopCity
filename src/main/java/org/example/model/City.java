@@ -3,7 +3,7 @@ package org.example.model;
 import java.util.Objects;
 
 /*
-CREATE TABLE CITY(
+CREATE TABLE WORLD.CITY(
 ID Int,
 Name char(35),
 Country_Code char(5),
